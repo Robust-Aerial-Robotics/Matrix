@@ -160,6 +160,26 @@ public:
         return res;
     }
 
+    // Kronecker product
+    template<size_t P, size_t Q>
+    Matrix<Type, M*P, N*Q> kron(const Matrix<Type, P, Q> &other) const
+    {
+        const Matrix<Type, M, N> &self = *this;
+        Matrix<Type, M*P, N*Q> res;
+
+        for (size_t i = 0; i < M; i++) {
+            for (size_t j = 0; j < N; j++) {
+                for (size_t k = 0; k < P; k++) {
+                    for (size_t l = 0; l < Q; l++) {
+                        res(i*P+k, j*Q+l) = self(i,j)*other(k,l);
+                    }
+                }
+            }
+        }
+
+        return res;
+    }
+
     Matrix<Type, M, N> emult(const Matrix<Type, M, N> &other) const
     {
         Matrix<Type, M, N> res;
@@ -388,6 +408,26 @@ public:
     inline Matrix<Type, N, M> T() const
     {
         return transpose();
+    }
+
+    // vertically concatenate [this.T, other.T].T
+    template<size_t P, size_t Q>
+    Matrix<Type, M+P, N> vcat(const Matrix<Type, P, Q> &other) const
+    {
+        assert(N==Q);
+
+        Type res_data[M+P][N];
+
+        memcpy(res_data, _data, sizeof(_data));
+        for(int i=0; i<P; i++) {
+            for(int j=0; j<Q; j++) {
+                res_data[M+i][j] = other(i,j);
+            }
+        }
+
+        Matrix<Type, M+P, N> res(res_data);
+
+        return res;
     }
 
     template<size_t P, size_t Q>
