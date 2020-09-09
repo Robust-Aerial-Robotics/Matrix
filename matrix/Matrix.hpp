@@ -96,9 +96,7 @@ public:
 
     inline const Type &operator()(size_t i, size_t j) const
     {
-        assert(i >= 0);
         assert(i < M);
-        assert(j >= 0);
         assert(j < N);
 
         return _data[i][j];
@@ -106,9 +104,7 @@ public:
 
     inline Type &operator()(size_t i, size_t j)
     {
-        assert(i >= 0);
         assert(i < M);
-        assert(j >= 0);
         assert(j < N);
 
         return _data[i][j];
@@ -157,6 +153,26 @@ public:
             for (size_t k = 0; k < P; k++) {
                 for (size_t j = 0; j < N; j++) {
                     res(i, k) += self(i, j) * other(j, k);
+                }
+            }
+        }
+
+        return res;
+    }
+
+    // Kronecker product
+    template<size_t P, size_t Q>
+    Matrix<Type, M*P, N*Q> kron(const Matrix<Type, P, Q> &other) const
+    {
+        const Matrix<Type, M, N> &self = *this;
+        Matrix<Type, M*P, N*Q> res;
+
+        for (size_t i = 0; i < M; i++) {
+            for (size_t j = 0; j < N; j++) {
+                for (size_t k = 0; k < P; k++) {
+                    for (size_t l = 0; l < Q; l++) {
+                        res(i*P+k, j*Q+l) = self(i,j)*other(k,l);
+                    }
                 }
             }
         }
@@ -394,6 +410,26 @@ public:
         return transpose();
     }
 
+    // vertically concatenate [this.T, other.T].T
+    template<size_t P, size_t Q>
+    Matrix<Type, M+P, N> vcat(const Matrix<Type, P, Q> &other) const
+    {
+        assert(N==Q);
+
+        Type res_data[M+P][N];
+
+        memcpy(res_data, _data, sizeof(_data));
+        for(size_t i=0; i<P; i++) {
+            for(size_t j=0; j<Q; j++) {
+                res_data[M+i][j] = other(i,j);
+            }
+        }
+
+        Matrix<Type, M+P, N> res(res_data);
+
+        return res;
+    }
+
     template<size_t P, size_t Q>
     const Slice<Type, P, Q, M, N> slice(size_t x0, size_t y0) const
     {
@@ -482,7 +518,8 @@ public:
         setZero();
         Matrix<Type, M, N> &self = *this;
 
-        for (size_t i = 0; i < M && i < N; i++) {
+        const size_t min_i = M > N ? N : M;
+        for (size_t i = 0; i < min_i; i++) {
             self(i, i) = 1;
         }
     }
@@ -494,9 +531,7 @@ public:
 
     inline void swapRows(size_t a, size_t b)
     {
-        assert(a >= 0);
         assert(a < M);
-        assert(b >= 0);
         assert(b < M);
 
         if (a == b) {
@@ -514,9 +549,7 @@ public:
 
     inline void swapCols(size_t a, size_t b)
     {
-        assert(a >= 0);
         assert(a < N);
-        assert(b >= 0);
         assert(b < N);
 
         if (a == b) {

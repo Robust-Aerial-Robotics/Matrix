@@ -3,10 +3,12 @@ set(tests
     inverse
     slice
     matrixMult
+    kronecker
     vectorAssignment
     matrixAssignment
     matrixScalarMult
     transpose
+    concatenate
     vector
     vector2
     vector3
